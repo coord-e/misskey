@@ -1,3 +1,12 @@
+# a fork of misskey-dev/misskey to simplify deployment
+
+- Configuration by environment variables
+- Object storage configuration in the config, not in the server setting
+
+See [docker-compose.yml](./docker-compose.yml) for example.
+
+---
+
 <div align="center">
 <a href="https://misskey-hub.net">
 	<img src="./assets/title_float.svg" alt="Misskey logo" style="border-radius:50%" width="400"/>

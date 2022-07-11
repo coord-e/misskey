@@ -7,15 +7,31 @@ services:
     links:
       - db
       - redis
-#      - es
+    environment:
+      NODE_ENV: development
+      MISSKEY_url: http://localhost:3000/
+      MISSKEY_port: 3000
+      MISSKEY_db_host: db
+      MISSKEY_db_port: 5432
+      MISSKEY_db_db: misskey
+      MISSKEY_db_user: misskey
+      MISSKEY_db_pass: misskey
+      MISSKEY_redis_host: redis
+      MISSKEY_redis_port: 6379
+      MISSKEY_id: aid
+      MISSKEY_objectStorage_baseUrl: http://localhost:9000/misskey
+      MISSKEY_objectStorage_useSSL: false
+      MISSKEY_objectStorage_s3ForcePathStyle: true
+      MISSKEY_objectStorage_endpoint: minio:9000
+      MISSKEY_objectStorage_bucket: misskey
+      MISSKEY_objectStorage_prefix: files
+      MISSKEY_objectStorage_accessKey: misskey
+      MISSKEY_objectStorage_secretKey: misskeymisskey
     ports:
       - "3000:3000"
     networks:
       - internal_network
       - external_network
-    volumes:
-      - ./files:/misskey/files
-      - ./.config:/misskey/.config:ro
 
   redis:
     restart: always
@@ -23,30 +39,42 @@ services:
     networks:
       - internal_network
     volumes:
-      - ./redis:/data
+      - redis:/data
 
   db:
     restart: always
     image: postgres:12.2-alpine
     networks:
       - internal_network
-    env_file:
-      - .config/docker.env
+    environment:
+      POSTGRES_DB: misskey
+      POSTGRES_USER: misskey
+      POSTGRES_PASSWORD: misskey
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
 
-#  es:
-#    restart: always
-#    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
-#    environment:
-#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-#      - "TAKE_FILE_OWNERSHIP=111"
-#    networks:
-#      - internal_network
-#    volumes:
-#      - ./elasticsearch:/usr/share/elasticsearch/data
+  minio:
+    restart: always
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    networks:
+      - internal_network
+      - external_network
+    environment:
+      MINIO_ROOT_USER: misskey
+      MINIO_ROOT_PASSWORD: misskeymisskey
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio:/data
 
 networks:
   internal_network:
     internal: true
   external_network:
+
+volumes:
+  db: {}
+  redis: {}
+  minio: {}
