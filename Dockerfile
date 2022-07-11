@@ -27,6 +27,8 @@ COPY --from=builder /misskey/packages/backend/built ./packages/backend/built
 COPY --from=builder /misskey/packages/client/node_modules ./packages/client/node_modules
 COPY . ./
 
+RUN mkdir -p .config && echo '{}' > .config/default.yml
+
 ENV NODE_ENV=production
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["npm", "run", "migrateandstart"]
