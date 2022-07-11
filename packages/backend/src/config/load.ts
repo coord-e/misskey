@@ -23,10 +23,38 @@ const path = process.env.NODE_ENV === 'test'
 	? `${dir}/test.yml`
 	: `${dir}/default.yml`;
 
+function assignToPath(root, path, value) {
+	let obj = root;
+	while (path.length !== 1) {
+		const key = path.shift();
+		if (!obj[key]) {
+			obj[key] = {};
+		}
+		obj = obj[key];
+	}
+	obj[path[0]] = value;
+	return root;
+}
+
+function stringToValue(value) {
+	try {
+		return JSON.parse(value);
+	} catch (_err) {
+		return value;
+	}
+}
+
+function fillConfigFromEnv(config, prefix) {
+	return Object.entries(process.env)
+		.filter(([k, _]) => k.startsWith(prefix))
+		.reduce((acc, [k, v]) => assignToPath(acc, k.slice(prefix.length).split('_'), stringToValue(v)), config);
+}
+
 export default function load() {
 	const meta = JSON.parse(fs.readFileSync(`${_dirname}/../../../../built/meta.json`, 'utf-8'));
 	const clientManifest = JSON.parse(fs.readFileSync(`${_dirname}/../../../../built/_client_dist_/manifest.json`, 'utf-8'));
-	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
+	const fileConfig = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
+	const config = fillConfigFromEnv(fileConfig, 'MISSKEY_');
 
 	const mixin = {} as Mixin;
 
